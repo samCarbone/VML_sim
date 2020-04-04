@@ -7,12 +7,6 @@ clc;
 % Load the workspace saved in the analysis code
 load('run_data.mat');
 
-% Hard-coded waypoints
-wps(1).pos = [2; 0; -1];
-wps(2).pos = [2; 2; -1];
-wps(3).pos = [0; 2; -1];
-wps(4).pos = [0; 0; -1];
-
 % Based upon the x, y, z truth data, generate camera measurements
 % Based upon the angle data, generate position estimates
 % Then use the RANSAC method on them
@@ -24,12 +18,12 @@ last_t = -1;
 max_dist = 1;
 frame_time = 0.02; % 50Hz camera sample rate
 
-for i=1:length(out.state.time)
-    delta_t = out.state.time(i) - last_t;
+for i=1:length(out.state_discrete.time)
+    delta_t = out.state_discrete.time(i) - last_t;
     if out.dist_to_gate.signals.values(i) < max_dist && delta_t >= frame_time
-        cam_meas.values(end+1, :) = out.state.signals.values(i, 1:3);
-        cam_meas.time(end+1, 1) = out.state.time(i);
-        last_t = out.state.time(i);
+        cam_meas.values(end+1, :) = out.state_discrete.signals.values(i, 1:3);
+        cam_meas.time(end+1, 1) = out.state_discrete.time(i);
+        last_t = out.state_discrete.time(i);
     end
 
 end
@@ -41,13 +35,13 @@ last_t = -1;
 frame_time = 0.002; % 500Hz imu sample rate
 pos_actual_at_imu_time = []; % The truth measurements, but aligned with the imu samples
 
-for i=1:length(out.state.time)
-    delta_t = out.state.time(i) - last_t;
+for i=1:length(out.state_discrete.time)
+    delta_t = out.state_discrete.time(i) - last_t;
     if delta_t >= frame_time
-        imu_meas.values(end+1, :) = out.state.signals.values(i, 7:9);
-        imu_meas.time(end+1, 1) = out.state.time(i);
-        last_t = out.state.time(i);
-        pos_actual_at_imu_time(end+1, :) = out.state.signals.values(i, 1:3);
+        imu_meas.values(end+1, :) = out.state_discrete.signals.values(i, 7:9);
+        imu_meas.time(end+1, 1) = out.state_discrete.time(i);
+        last_t = out.state_discrete.time(i);
+        pos_actual_at_imu_time(end+1, :) = out.state_discrete.signals.values(i, 1:3);
     end
 
 end
@@ -171,9 +165,9 @@ figure(1);
 clf;
 
 % Plot actual position
-x_act = out.state.signals.values(:, 1);
-y_act = out.state.signals.values(:, 2);
-z_act = out.state.signals.values(:, 3);
+x_act = out.state_discrete.signals.values(:, 1);
+y_act = out.state_discrete.signals.values(:, 2);
+z_act = out.state_discrete.signals.values(:, 3);
 plot3(x_act, y_act, -z_act);
 axis equal;
 
@@ -194,7 +188,7 @@ plot3(x_est(1, :), y_est(1, :), ones(size(x(1, :))), 'k'); % corrected
 figure(2);
 clf;
 hold on;
-plot(out.state.time, x_act);
+plot(out.state_discrete.time, x_act);
 plot(imu_meas.time, x(1, :));
 plot(imu_meas.time, x_off_array(1, :));
 plot(imu_meas.time, x_off_array(2, :));

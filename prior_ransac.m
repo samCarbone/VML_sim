@@ -23,9 +23,8 @@
 
 function [x_off, v_off] = prior_ransac(D_x, D_t, iter, sigma_th, n, P)
     % The minimum summed error for the iterations
-    epsilon_min = [];
-    index_min = [];
-    
+    epsilon_min = -1; % sum of squared errors cannot be less than 0
+
     % The final coefficients of the linear model
     x_off = 0;
     v_off = 0;
@@ -62,15 +61,13 @@ function [x_off, v_off] = prior_ransac(D_x, D_t, iter, sigma_th, n, P)
         
         % Check if this has the lowest of the sum of squared errors
         % compared to the other iterations
-        if isempty(epsilon_min)
+        if epsilon_min == -1
             epsilon_min = epsilon_i;
-            index_min = i;
             x_off = x_off_i;
             v_off = v_off_i;
         
         elseif epsilon_i < epsilon_min
             epsilon_min = epsilon_i;
-            index_min = i;
             x_off = x_off_i;
             v_off = v_off_i;
             
